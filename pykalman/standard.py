@@ -144,6 +144,10 @@ def _loglikelihoods(observation_matrices, observation_offsets,
     for t in range(n_timesteps):
         observation = observations[t]
         if not np.any(np.ma.getmask(observation)):
+
+            # convert into non-masked observation
+            observation = np.array(observation)
+
             observation_matrix = _last_dims(observation_matrices, t)
             observation_offset = _last_dims(observation_offsets, t, ndims=1)
             predicted_state_mean = _last_dims(
@@ -182,7 +186,7 @@ def _filter_predict(transition_matrix, transition_covariance,
 
     Parameters
     ----------
-    transition_matrix : [n_dim_state, n_dim_state} array
+    transition_matrix : [n_dim_state, n_dim_state] array
         state transition matrix from time t to t+1
     transition_covariance : [n_dim_state, n_dim_state] array
         covariance matrix for state transition from time t to t+1
@@ -1529,6 +1533,4 @@ class KalmanFilter(object):
     def _parse_observations(self, obs):
         """Safely convert observations to their expected format"""
         obs = np.ma.atleast_2d(obs)
-        if obs.shape[0] == 1 and obs.shape[1] > 1:
-            obs = obs.T
         return obs
