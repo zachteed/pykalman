@@ -272,6 +272,7 @@ def _filter_correct(observation_matrix, observation_covariance,
             + observation_covariance
         )
 
+
         kalman_gain = (
             np.dot(predicted_state_covariance,
                    np.dot(observation_matrix.T,
@@ -366,6 +367,7 @@ def _filter(transition_matrices, observation_matrices, transition_covariance,
     filtered_state_covariances = np.zeros(
         (n_timesteps, n_dim_state, n_dim_state)
     )
+
 
     for t in range(n_timesteps):
         if t == 0:
@@ -1170,11 +1172,11 @@ class KalmanFilter(object):
             self._initialize_parameters()
         )
 
-        if state_mean is not None:
-            initial_state_mean = state_mean
-
-        if state_covariance is None:
-            initial_state_covariance = state_covariance
+        # if state_mean is not None:
+        #     initial_state_mean = state_mean
+        #
+        # if state_covariance is None:
+        #     initial_state_covariance = state_covariance
 
         (_, _, _, filtered_state_means,
          filtered_state_covariances) = (
@@ -1444,7 +1446,7 @@ class KalmanFilter(object):
             )
         return self
 
-    def loglikelihood(self, X):
+    def loglikelihood(self, X, state_mean=None, state_covariance=None):
         """Calculate the log likelihood of all observations
 
         Parameters
@@ -1466,6 +1468,12 @@ class KalmanFilter(object):
          initial_state_mean, initial_state_covariance) = (
             self._initialize_parameters()
         )
+
+        if state_mean is not None:
+            initial_state_mean = state_mean
+
+        if state_covariance is not None:
+            initial_state_covariance = state_covariance
 
         # apply the Kalman Filter
         (predicted_state_means, predicted_state_covariances,
