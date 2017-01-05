@@ -140,7 +140,8 @@ def _loglikelihoods(observation_matrices, observation_offsets,
         generated at time step t
     """
     n_timesteps = observations.shape[0]
-    loglikelihoods = np.zeros(n_timesteps)
+    loglikelihoods = []
+
     for t in range(n_timesteps):
         observation = observations[t]
         if not np.any(np.ma.getmask(observation)):
@@ -168,11 +169,11 @@ def _loglikelihoods(observation_matrices, observation_offsets,
                               observation_matrix.T))
                 + observation_covariance
             )
-            loglikelihoods[t] = log_multivariate_normal_density(
+            loglikelihoods.append(log_multivariate_normal_density(
                 observation[np.newaxis, :],
                 predicted_observation_mean[np.newaxis, :],
                 predicted_observation_covariance[np.newaxis, :, :]
-            )
+            ))
     return loglikelihoods
 
 
@@ -1133,7 +1134,7 @@ class KalmanFilter(object):
 
         return (states, np.ma.array(observations))
 
-    def filter(self, X):
+    def filter(self, X, state_mean=None, state_covariance=None):
         """Apply the Kalman Filter
 
         Apply the Kalman Filter to estimate the hidden state at time :math:`t`
@@ -1169,6 +1170,12 @@ class KalmanFilter(object):
             self._initialize_parameters()
         )
 
+        if state_mean is not None:
+            initial_state_mean = state_mean
+
+        if state_covariance is None:
+            initial_state_covariance = state_covariance
+
         (_, _, _, filtered_state_means,
          filtered_state_covariances) = (
             _filter(
@@ -1180,6 +1187,7 @@ class KalmanFilter(object):
             )
         )
         return (filtered_state_means, filtered_state_covariances)
+
 
     def filter_update(self, filtered_state_mean, filtered_state_covariance,
                       observation=None, transition_matrix=None,
@@ -1478,7 +1486,7 @@ class KalmanFilter(object):
           predicted_state_means, predicted_state_covariances, Z
         )
 
-        return np.sum(loglikelihoods)
+        return loglikelihoods
 
     def _initialize_parameters(self):
         """Retrieve parameters if they exist, else replace with defaults"""
