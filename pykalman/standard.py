@@ -1446,6 +1446,44 @@ class KalmanFilter(object):
             )
         return self
 
+    def predict(self, X):
+        """Calculate the log likelihood of all observations
+
+        Parameters
+        ----------
+        X : [n_timesteps, n_dim_obs] array
+            observations for time steps [0...n_timesteps-1]
+
+        Returns
+        -------
+        likelihood : float
+            likelihood of all observations
+        """
+        Z = self._parse_observations(X)
+
+        # initialize parameters
+        (transition_matrices, transition_offsets,
+         transition_covariance, observation_matrices,
+         observation_offsets, observation_covariance,
+         initial_state_mean, initial_state_covariance) = (
+            self._initialize_parameters()
+        )
+
+        # apply the Kalman Filter
+        (predicted_state_means, predicted_state_covariances,
+         kalman_gains, filtered_state_means,
+         filtered_state_covariances) = (
+            _filter(
+                transition_matrices, observation_matrices,
+                transition_covariance, observation_covariance,
+                transition_offsets, observation_offsets,
+                initial_state_mean, initial_state_covariance,
+                Z
+            )
+        )
+
+        return (predicted_state_means, predicted_state_covariances)
+
     def loglikelihood(self, X, state_mean=None, state_covariance=None):
         """Calculate the log likelihood of all observations
 
